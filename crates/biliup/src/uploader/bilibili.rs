@@ -6,7 +6,7 @@ use serde_json::{json, Value};
 use std::fmt::{Display, Formatter};
 use std::num::ParseIntError;
 use std::str::FromStr;
-use std::time::Duration;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use tracing::info;
 use typed_builder::TypedBuilder;
 
@@ -217,6 +217,21 @@ pub struct BiliBili {
 }
 
 impl BiliBili {
+    pub fn get_csrf(&self) -> Result<&str> {
+        let csrf = self
+            .login_info
+            .cookie_info
+            .get("cookies")
+            .and_then(|c| c.as_array())
+            .ok_or("invalid cookie format")?
+            .iter()
+            .find(|c| c["name"] == "bili_jct")
+            .map(|c| c["value"].as_str())
+            .ok_or("jct not found")?
+            .ok_or("jct no value")?;
+        Ok(csrf)
+    }
+
     pub async fn submit(&self, studio: &Studio) -> Result<ResponseData> {
         let ret: ResponseData = reqwest::Client::builder()
             .user_agent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/63.0.3239.108")
@@ -249,6 +264,36 @@ impl BiliBili {
                 "http://member.bilibili.com/x/vu/client/edit?access_key={}",
                 self.login_info.token_info.access_token
             ))
+            .json(studio)
+            .send()
+            .await?
+            .json()
+            .await?;
+        info!("{}", ret);
+        if ret["code"] == 0 {
+            info!("稿件修改成功");
+            Ok(ret)
+        } else {
+            Err(Kind::Custom(ret.to_string()))
+        }
+    }
+
+    pub async fn edit_web(&self, studio: &Studio) -> Result<serde_json::Value> {
+        let url = {
+            let url_str = "https://member.bilibili.com/x/vu/web/edit";
+            let t = SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_millis()
+                .to_string();
+            let csrf = self.get_csrf()?.to_string();
+            let params = [("t", t), ("csrf", csrf)];
+            reqwest::Url::parse_with_params(url_str, &params).unwrap()
+        };
+
+        let ret: serde_json::Value = self
+            .client
+            .post(url)
             .json(studio)
             .send()
             .await?
@@ -336,22 +381,13 @@ impl BiliBili {
     }
 
     pub async fn cover_up(&self, input: &[u8]) -> Result<String> {
-        let csrf = self
-            .login_info
-            .cookie_info
-            .get("cookies")
-            .and_then(|c| c.as_array())
-            .ok_or("cover_up cookie error")?
-            .iter()
-            .filter_map(|c| c.as_object())
-            .find(|c| c["name"] == "bili_jct")
-            .ok_or("cover_up jct error")?;
+        let csrf = self.get_csrf()?.to_string();
         let response = self
             .client
             .post("https://member.bilibili.com/x/vu/web/cover/up")
             .form(&json!({
                 "cover": format!("data:image/jpeg;base64,{}", base64::Engine::encode(&base64::engine::general_purpose::STANDARD, input)),
-                "csrf": csrf["value"]
+                "csrf": csrf
             }))
             .send()
             .await?;
