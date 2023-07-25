@@ -121,12 +121,17 @@ pub async fn append(
     video_path: Vec<PathBuf>,
     line: Option<UploadLine>,
     limit: usize,
+    web: bool,
 ) -> Result<()> {
     let bilibili = login_by_cookies(user_cookie).await?;
     let mut uploaded_videos = upload(&video_path, &bilibili, line, limit).await?;
     let mut studio = bilibili.studio_data(&vid).await?;
     studio.videos.append(&mut uploaded_videos);
-    bilibili.edit(&studio).await?;
+    if web {
+        bilibili.edit_web(&studio).await?;
+    } else {
+        bilibili.edit(&studio).await?;
+    }
     // studio.edit(&login_info).await?;
     Ok(())
 }

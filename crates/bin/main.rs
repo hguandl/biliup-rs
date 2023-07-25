@@ -60,7 +60,8 @@ async fn main() -> Result<()> {
             line,
             limit,
             studio: _,
-        } => append(cli.user_cookie, vid, video_path, line, limit).await?,
+            web,
+        } => append(cli.user_cookie, vid, video_path, line, limit, web).await?,
         Commands::Show { vid } => show(cli.user_cookie, vid).await?,
         Commands::DumpFlv { file_name } => generate_json(file_name)?,
         Commands::Download {

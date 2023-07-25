@@ -72,6 +72,10 @@ pub enum Commands {
 
         #[command(flatten)]
         studio: Studio,
+
+        /// 使用 Web API 提交
+        #[arg(long)]
+        web: bool,
     },
     /// 打印视频详情
     Show {
