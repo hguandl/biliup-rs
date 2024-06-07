@@ -187,7 +187,7 @@ pub async fn upload(studio_pre: StudioPre) -> Result<ResponseData> {
     Ok(bilibili.submit(&studio).await?)
 }
 
-pub async fn upload_by_app(studio_pre: StudioPre) -> Result<ResponseData> {
+pub async fn upload_by_app(studio_pre: StudioPre, proxy: Option<&str>) -> Result<ResponseData> {
     // let file = std::fs::File::options()
     //     .read(true)
     //     .write(true)
@@ -308,5 +308,5 @@ pub async fn upload_by_app(studio_pre: StudioPre) -> Result<ResponseData> {
         studio.cover = url;
     }
 
-    Ok(bilibili.submit_by_app(&studio).await?)
+    Ok(bilibili.submit_by_app(&studio, proxy).await?)
 }

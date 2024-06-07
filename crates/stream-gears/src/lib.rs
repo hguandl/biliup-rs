@@ -275,7 +275,7 @@ fn upload(
 
 #[allow(clippy::too_many_arguments)]
 #[pyfunction]
-#[pyo3(signature = (video_path, cookie_file, title, tid=171, tag="".to_string(), copyright=2, source="".to_string(), desc="".to_string(), dynamic="".to_string(), cover="".to_string(), dolby=0, lossless_music=0, no_reprint=0, open_elec=0, up_close_reply=false, up_selection_reply=false, up_close_danmu=false, limit=3, desc_v2=vec![], dtime=None, line=None))]
+#[pyo3(signature = (video_path, cookie_file, title, tid=171, tag="".to_string(), copyright=2, source="".to_string(), desc="".to_string(), dynamic="".to_string(), cover="".to_string(), dolby=0, lossless_music=0, no_reprint=0, open_elec=0, up_close_reply=false, up_selection_reply=false, up_close_danmu=false, limit=3, desc_v2=vec![], dtime=None, line=None, proxy=None))]
 fn upload_by_app(
     py: Python<'_>,
     video_path: Vec<PathBuf>,
@@ -299,6 +299,7 @@ fn upload_by_app(
     desc_v2: Vec<PyCredit>,
     dtime: Option<u32>,
     line: Option<UploadLine>,
+    proxy: Option<String>,
 ) -> PyResult<()> {
     py.allow_threads(|| {
         let rt = tokio::runtime::Builder::new_current_thread()
@@ -350,7 +351,7 @@ fn upload_by_app(
                 .desc_v2_credit(desc_v2)
                 .build();
 
-            match rt.block_on(uploader::upload_by_app(studio_pre)) {
+            match rt.block_on(uploader::upload_by_app(studio_pre, proxy.as_deref())) {
                 Ok(_) => Ok(()),
                 // Ok(_) => {  },
                 Err(err) => Err(pyo3::exceptions::PyRuntimeError::new_err(format!(
