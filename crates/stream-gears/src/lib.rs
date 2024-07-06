@@ -356,11 +356,18 @@ fn upload2(
 
         match response {
             Ok(value) => Ok(value.data.unwrap()["bvid"].as_str().unwrap().to_owned()),
-            Err(err) => Err(pyo3::exceptions::PyRuntimeError::new_err(format!(
-                "{}, {}",
-                err.root_cause(),
-                err
-            ))),
+            Err(err) => Err(pyerr_from_anyhow(err)),
+        }
+    })
+}
+
+#[pyfunction]
+fn fetch(py: Python<'_>, cookie_file: PathBuf, bvid: String) -> PyResult<String> {
+    spawn_logged_task(py, || async {
+        let response = uploader::fetch(&cookie_file, &bvid).await;
+        match response {
+            Ok(json) => Ok(json),
+            Err(err) => Err(pyerr_from_anyhow(err)),
         }
     })
 }
@@ -399,6 +406,10 @@ where
     })
 }
 
+fn pyerr_from_anyhow(err: anyhow::Error) -> PyErr {
+    pyo3::exceptions::PyRuntimeError::new_err(format!("{}, {}", err.root_cause(), err))
+}
+
 /// A Python module implemented in Rust.
 #[pymodule]
 fn stream_gears(m: &Bound<'_, PyModule>) -> PyResult<()> {
@@ -410,6 +421,7 @@ fn stream_gears(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(upload, m)?)?;
     m.add_function(wrap_pyfunction!(upload_by_app, m)?)?;
     m.add_function(wrap_pyfunction!(upload2, m)?)?;
+    m.add_function(wrap_pyfunction!(fetch, m)?)?;
     m.add_function(wrap_pyfunction!(download, m)?)?;
     m.add_function(wrap_pyfunction!(download_with_callback, m)?)?;
     m.add_function(wrap_pyfunction!(login_by_cookies, m)?)?;

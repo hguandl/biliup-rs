@@ -1,4 +1,5 @@
 use anyhow::{Context, Result};
+use biliup::bilibili::Vid::Bvid;
 use biliup::client::StatelessClient;
 use biliup::error::Kind;
 use biliup::uploader::bilibili::{Credit, ResponseData, Studio};
@@ -203,4 +204,10 @@ async fn upload_inner(studio_pre: StudioPre, by_app: bool) -> Result<ResponseDat
     };
 
     Ok(response)
+}
+
+pub async fn fetch(cookie_file: &PathBuf, bvid: &str) -> Result<String> {
+    let bilibili = login_by_cookies(&cookie_file).await?;
+    let archive = bilibili.video_data(&Bvid(bvid.to_owned())).await?;
+    Ok(serde_json::to_string(&archive)?)
 }

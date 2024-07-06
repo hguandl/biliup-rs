@@ -271,3 +271,13 @@ def upload2(by_app: bool,
 
     :return: 投稿bvid
     """
+
+def fetch(cookie_file: str, bvid: str) -> str:
+    """
+    获取视频稿件信息
+
+    :param str cookie_file: cookie文件路径
+    :param str bvid: 视频bvid
+
+    :return: 视频稿件信息JSON
+    """
