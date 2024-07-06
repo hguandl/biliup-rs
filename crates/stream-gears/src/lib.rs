@@ -372,6 +372,31 @@ fn fetch(py: Python<'_>, cookie_file: PathBuf, bvid: String) -> PyResult<String>
     })
 }
 
+#[pyfunction]
+fn edit(
+    py: Python<'_>,
+    cookie_file: PathBuf,
+    bvid: String,
+    title: Option<String>,
+    tag: Option<String>,
+    cover: Option<String>,
+) -> PyResult<()> {
+    spawn_logged_task(py, || async {
+        let result = uploader::edit(
+            &cookie_file,
+            bvid.as_str(),
+            title.as_deref(),
+            cover.as_deref(),
+            tag.as_deref(),
+        )
+        .await;
+        match result {
+            Ok(_) => Ok(()),
+            Err(err) => Err(pyerr_from_anyhow(err)),
+        }
+    })
+}
+
 fn spawn_logged_task<T: Send, R, F>(py: Python<'_>, f: F) -> PyResult<T>
 where
     R: Future<Output = PyResult<T>>,
@@ -422,6 +447,7 @@ fn stream_gears(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(upload_by_app, m)?)?;
     m.add_function(wrap_pyfunction!(upload2, m)?)?;
     m.add_function(wrap_pyfunction!(fetch, m)?)?;
+    m.add_function(wrap_pyfunction!(edit, m)?)?;
     m.add_function(wrap_pyfunction!(download, m)?)?;
     m.add_function(wrap_pyfunction!(download_with_callback, m)?)?;
     m.add_function(wrap_pyfunction!(login_by_cookies, m)?)?;

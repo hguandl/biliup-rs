@@ -211,3 +211,36 @@ pub async fn fetch(cookie_file: &PathBuf, bvid: &str) -> Result<String> {
     let archive = bilibili.video_data(&Bvid(bvid.to_owned())).await?;
     Ok(serde_json::to_string(&archive)?)
 }
+
+pub async fn edit(
+    cookie_file: &PathBuf,
+    bvid: &str,
+    title: Option<&str>,
+    cover: Option<&str>,
+    tag: Option<&str>,
+) -> Result<serde_json::Value> {
+    let bilibili = login_by_cookies(&cookie_file).await?;
+    let mut studio = bilibili.studio_data(&Bvid(bvid.to_owned())).await?;
+
+    if let Some(title) = title {
+        studio.title = title.to_owned();
+    }
+
+    if let Some(cover) = cover {
+        let input = tokio::fs::read(&cover).await?;
+        let url = bilibili.cover_up(&input).await?;
+        studio.cover = url;
+    }
+
+    if let Some(tag) = tag {
+        studio.tag = tag.to_owned();
+    }
+
+    let response = bilibili.edit(&studio).await?;
+
+    if response["code"] != 0 {
+        return Err(anyhow::anyhow!("Edit failed: {}", response));
+    }
+
+    Ok(response)
+}

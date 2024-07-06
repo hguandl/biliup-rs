@@ -281,3 +281,19 @@ def fetch(cookie_file: str, bvid: str) -> str:
 
     :return: 视频稿件信息JSON
     """
+
+def edit(cookie_file: str,
+         bvid: str,
+         title: Optional[str] = None,
+         cover: Optional[str] = None,
+         tag: Optional[str] = None) -> None:
+    
+    """
+    编辑视频稿件
+
+    :param str cookie_file: cookie文件路径
+    :param str bvid: 视频bvid
+    :param str title: 视频标题, None表示不修改
+    :param str cover: 视频封面, None表示不修改
+    :param str tag: 视频标签, 英文逗号分隔多个tag, None表示不修改
+    """
