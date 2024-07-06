@@ -27,7 +27,7 @@ pub enum UploadLine {
     Bldsa,
     Tx,
     Txa,
-    Bda
+    Bda,
 }
 
 #[derive(FromPyObject)]
@@ -59,11 +59,11 @@ pub struct StudioPre {
     lossless_music: u8,
     no_reprint: u8,
     open_elec: u8,
-    #[builder(default=false)]
+    #[builder(default = false)]
     up_close_reply: bool,
-    #[builder(default=false)]
+    #[builder(default = false)]
     up_selection_reply: bool,
-    #[builder(default=false)]
+    #[builder(default = false)]
     up_close_danmu: bool,
     desc_v2_credit: Vec<PyCredit>,
 }

@@ -10,11 +10,11 @@ use std::path::PathBuf;
 use std::time::Duration;
 
 use crate::uploader::UploadLine;
+use biliup::credential::Credential;
 use biliup::downloader::construct_headers;
+use biliup::downloader::extractor::CallbackFn;
 use biliup::downloader::util::Segmentable;
 use tracing_subscriber::layer::SubscriberExt;
-use biliup::credential::Credential;
-use biliup::downloader::extractor::CallbackFn;
 
 #[derive(FromPyObject)]
 pub enum PySegment {
@@ -76,15 +76,14 @@ fn download_with_callback(
 
         let file_name_hook = file_name_callback_fn.map(|callback_fn| -> CallbackFn {
             Box::new(move |fmt_file_name| {
-                Python::with_gil(|py| {
-                    match callback_fn.call1(py, (fmt_file_name, )) {
-                        Ok(_) => {}
-                        Err(_) => { tracing::error!("Unable to invoke the callback function.") }
+                Python::with_gil(|py| match callback_fn.call1(py, (fmt_file_name,)) {
+                    Ok(_) => {}
+                    Err(_) => {
+                        tracing::error!("Unable to invoke the callback function.")
                     }
                 })
             })
         });
-
 
         let collector = formatting_layer.with(file_layer);
         tracing::subscriber::with_default(collector, || -> PyResult<()> {
@@ -155,13 +154,13 @@ fn get_qrcode() -> PyResult<String> {
 fn login_by_qrcode(ret: String) -> PyResult<String> {
     let rt = tokio::runtime::Runtime::new().unwrap();
     rt.block_on(async {
-        let info = Credential::new().login_by_qrcode(serde_json::from_str(&ret).unwrap()).await?;
+        let info = Credential::new()
+            .login_by_qrcode(serde_json::from_str(&ret).unwrap())
+            .await?;
         let res = serde_json::to_string_pretty(&info)?;
         Ok::<_, anyhow::Error>(res)
-    }).map_err(|err| pyo3::exceptions::PyRuntimeError::new_err(format!(
-        "{:#?}",
-        err
-    )))
+    })
+    .map_err(|err| pyo3::exceptions::PyRuntimeError::new_err(format!("{:#?}", err)))
 }
 
 #[pyfunction]
