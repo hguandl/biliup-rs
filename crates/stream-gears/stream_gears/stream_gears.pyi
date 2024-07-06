@@ -242,7 +242,9 @@ def upload2(by_app: bool,
             limit: int,
             desc_v2: List[Credit],
             dtime: Optional[int],
-            line: Optional[UploadLine]) -> str:
+            line: Optional[UploadLine],
+            proxy: Optional[str],
+            user_agent: Optional[str]) -> str:
     """
     上传视频稿件
 
@@ -268,6 +270,8 @@ def upload2(by_app: bool,
     :param List[Credit] desc_v2: 视频简介v2
     :param Optional[dtime] int dtime: 定时发布时间, 距离提交大于2小时小于15天, 格式为10位时间戳
     :param Optional[UploadLine] line: 上传线路
+    :param Optional[str] proxy: 代理地址
+    :param Optional[str] user_agent: 用户代理
 
     :return: 投稿bvid
     """

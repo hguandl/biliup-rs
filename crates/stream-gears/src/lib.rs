@@ -238,6 +238,8 @@ fn upload(
         desc_v2,
         dtime,
         line,
+        None,
+        None,
     )
     .map(|_| ())
 }
@@ -293,6 +295,8 @@ fn upload_by_app(
         desc_v2,
         dtime,
         line,
+        None,
+        None,
     )
     .map(|_| ())
 }
@@ -323,6 +327,8 @@ fn upload2(
     desc_v2: Vec<PyCredit>,
     dtime: Option<u32>,
     line: Option<UploadLine>,
+    proxy: Option<String>,
+    user_agent: Option<String>,
 ) -> PyResult<String> {
     spawn_logged_task(py, || async {
         let studio_pre = StudioPre::builder()
@@ -349,12 +355,7 @@ fn upload2(
             .desc_v2_credit(desc_v2)
             .build();
 
-        let response = match by_app {
-            true => uploader::upload_by_app(studio_pre).await,
-            false => uploader::upload(studio_pre).await,
-        };
-
-        match response {
+        match uploader::upload2(studio_pre, by_app, proxy.as_deref(), user_agent.as_deref()).await {
             Ok(value) => Ok(value.data.unwrap()["bvid"].as_str().unwrap().to_owned()),
             Err(err) => Err(pyerr_from_anyhow(err)),
         }

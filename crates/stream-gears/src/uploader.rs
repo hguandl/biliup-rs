@@ -69,15 +69,12 @@ pub struct StudioPre {
     desc_v2_credit: Vec<PyCredit>,
 }
 
-pub async fn upload(studio_pre: StudioPre) -> Result<ResponseData> {
-    upload_inner(studio_pre, false).await
-}
-
-pub async fn upload_by_app(studio_pre: StudioPre) -> Result<ResponseData> {
-    upload_inner(studio_pre, true).await
-}
-
-async fn upload_inner(studio_pre: StudioPre, by_app: bool) -> Result<ResponseData> {
+pub async fn upload2(
+    studio_pre: StudioPre,
+    by_app: bool,
+    proxy: Option<&str>,
+    user_agent: Option<&str>,
+) -> Result<ResponseData> {
     // let file = std::fs::File::options()
     //     .read(true)
     //     .write(true)
@@ -199,7 +196,7 @@ async fn upload_inner(studio_pre: StudioPre, by_app: bool) -> Result<ResponseDat
     }
 
     let response = match by_app {
-        true => bilibili.submit_by_app(&studio).await?,
+        true => bilibili.submit_by_app(&studio, proxy, user_agent).await?,
         false => bilibili.submit(&studio).await?,
     };
 

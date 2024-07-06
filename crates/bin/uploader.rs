@@ -91,7 +91,7 @@ pub async fn upload_by_command(
     // }
     // 说不定会适配 web 呢...?
     match submit {
-        SubmitOption::App => bili.submit_by_app(&studio).await?,
+        SubmitOption::App => bili.submit_by_app(&studio, None, None).await?,
         _ => bili.submit(&studio).await?,
     };
 

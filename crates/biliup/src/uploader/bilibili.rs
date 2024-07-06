@@ -250,7 +250,7 @@ impl BiliBili {
             }
         }
 
-    pub async fn submit_by_app(&self, studio: &Studio) -> Result<ResponseData> {
+    pub async fn submit_by_app(&self, studio: &Studio, proxy: Option<&str>, user_agent: Option<&str>) -> Result<ResponseData> {
         let payload = {
             let mut payload = json!({
                 "access_key": self.login_info.token_info.access_token,
@@ -272,8 +272,23 @@ impl BiliBili {
             payload
         };
 
-        let ret: ResponseData = reqwest::Client::builder()
-            .user_agent("Mozilla/5.0 BiliDroid/7.80.0 (bbcallen@gmail.com) os/android model/MI 6 mobi_app/android build/7800300 channel/bili innerVer/7800310 osVer/13 network/2")
+        let client_builder = match proxy {
+            Some(proxy) => {
+                info!("使用代理: {}", proxy);
+                reqwest::Client::builder().proxy(reqwest::Proxy::all(proxy)?)
+            }
+            None => reqwest::Client::builder(),
+        };
+
+        let client_builder = match user_agent {
+            Some(user_agent) => {
+                info!("使用UA: {}", user_agent);
+                client_builder.user_agent(user_agent)
+            }
+            None => client_builder.user_agent("Mozilla/5.0 BiliDroid/7.80.0 (bbcallen@gmail.com) os/android model/MI 6 mobi_app/android build/7800300 channel/bili innerVer/7800310 osVer/13 network/2")
+        };
+
+        let ret: ResponseData = client_builder
             .timeout(Duration::new(60, 0))
             .build()?
             .post("https://member.bilibili.com/x/vu/app/add")
