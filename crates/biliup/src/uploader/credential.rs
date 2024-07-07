@@ -58,30 +58,30 @@ pub async fn login_by_cookies(file: impl AsRef<Path>) -> Result<BiliBili> {
     let login_info: LoginInfo = serde_json::from_reader(std::io::BufReader::new(&file))?;
     client.set_cookie(&login_info.cookie_info);
     info!("通过cookie登录");
-    let response = client.validate_tokens(&login_info).await?;
+    // let response = client.validate_tokens(&login_info).await?;
     // if response.code != 0 {
     //     return Err(CustomError::Custom(response.to_string()));
     // }
-    let login_info = match response {
-        ResponseData {
-            data: Some(ResponseValue::OAuth(OAuthInfo { refresh: true, .. })),
-            ..
-        } => {
-            let new_info = client.renew_tokens(login_info).await?;
-            file.rewind()?;
-            file.set_len(0)?;
-            serde_json::to_writer_pretty(std::io::BufWriter::new(&file), &new_info)?;
-            new_info
-        }
-        ResponseData {
-            data: Some(ResponseValue::OAuth(OAuthInfo { refresh: false, .. })),
-            ..
-        } => {
-            info!("无需更新cookie");
-            login_info
-        }
-        _ => return Err(Kind::Custom(response.to_string())),
-    };
+    // let login_info = match response {
+    //     ResponseData {
+    //         data: Some(ResponseValue::OAuth(OAuthInfo { refresh: true, .. })),
+    //         ..
+    //     } => {
+    //         let new_info = client.renew_tokens(login_info).await?;
+    //         file.rewind()?;
+    //         file.set_len(0)?;
+    //         serde_json::to_writer_pretty(std::io::BufWriter::new(&file), &new_info)?;
+    //         new_info
+    //     }
+    //     ResponseData {
+    //         data: Some(ResponseValue::OAuth(OAuthInfo { refresh: false, .. })),
+    //         ..
+    //     } => {
+    //         info!("无需更新cookie");
+    //         login_info
+    //     }
+    //     _ => return Err(Kind::Custom(response.to_string())),
+    // };
     Ok(BiliBili {
         client: client.0.client,
         login_info,
