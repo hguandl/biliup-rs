@@ -301,3 +301,14 @@ def edit(cookie_file: str,
     :param str cover: 视频封面, None表示不修改
     :param str tag: 视频标签, 英文逗号分隔多个tag, None表示不修改
     """
+
+def archives(cookie_file: str, status="is_pubbing,pubbed,not_pubbed", page=1) -> str:
+    """
+    获取最近投稿
+
+    :param str cookie_file: cookie文件路径
+    :param bool status: 稿件状态, 逗号分隔多个状态
+    :param int page: 稿件列表页码
+
+    :return: 稿件列表JSON
+    """

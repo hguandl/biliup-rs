@@ -441,7 +441,7 @@ impl BiliBili {
     }
 
     /// 稿件管理
-    async fn archives(&self, status: &str, page_num: u32) -> Result<Value> {
+    pub async fn archives(&self, status: &str, page_num: u32) -> Result<Value> {
         let url_str = "https://member.bilibili.com/x/web/archives";
         let params = [("status", status), ("pn", &page_num.to_string())];
         let url = reqwest::Url::parse_with_params(url_str, &params).unwrap();

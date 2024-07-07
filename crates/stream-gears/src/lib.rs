@@ -398,6 +398,22 @@ fn edit(
     })
 }
 
+#[pyfunction]
+#[pyo3(signature = (cookie_file, status="is_pubbing,pubbed,not_pubbed", page=1))]
+fn archives(py: Python<'_>, cookie_file: PathBuf, status: &str, page: u32) -> PyResult<String> {
+    spawn_logged_task(py, || async {
+        let value = match uploader::archives(&cookie_file, status, page).await {
+            Ok(value) => value,
+            Err(err) => return Err(pyerr_from_anyhow(err)),
+        };
+
+        match serde_json::to_string(&value) {
+            Ok(json) => Ok(json),
+            Err(err) => Err(pyerr_from_anyhow(err.into())),
+        }
+    })
+}
+
 fn spawn_logged_task<T: Send, R, F>(py: Python<'_>, f: F) -> PyResult<T>
 where
     R: Future<Output = PyResult<T>>,
@@ -449,6 +465,7 @@ fn stream_gears(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(upload2, m)?)?;
     m.add_function(wrap_pyfunction!(fetch, m)?)?;
     m.add_function(wrap_pyfunction!(edit, m)?)?;
+    m.add_function(wrap_pyfunction!(archives, m)?)?;
     m.add_function(wrap_pyfunction!(download, m)?)?;
     m.add_function(wrap_pyfunction!(download_with_callback, m)?)?;
     m.add_function(wrap_pyfunction!(login_by_cookies, m)?)?;

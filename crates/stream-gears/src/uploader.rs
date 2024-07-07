@@ -241,3 +241,9 @@ pub async fn edit(
 
     Ok(response)
 }
+
+pub async fn archives(cookie_file: &PathBuf, status: &str, page: u32) -> Result<serde_json::Value> {
+    let bilibili = login_by_cookies(&cookie_file).await?;
+    let response = bilibili.archives(status, page).await?;
+    Ok(response)
+}
