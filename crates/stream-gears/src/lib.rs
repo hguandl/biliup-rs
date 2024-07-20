@@ -414,6 +414,17 @@ fn archives(py: Python<'_>, cookie_file: PathBuf, status: &str, page: u32) -> Py
     })
 }
 
+#[pyfunction]
+fn delete(py: Python<'_>, cookie_file: PathBuf, bvid: &str) -> PyResult<()> {
+    spawn_logged_task(py, || async {
+        let result = uploader::delete(&cookie_file, &bvid).await;
+        match result {
+            Ok(_) => Ok(()),
+            Err(err) => Err(pyerr_from_anyhow(err)),
+        }
+    })
+}
+
 fn spawn_logged_task<T: Send, R, F>(py: Python<'_>, f: F) -> PyResult<T>
 where
     R: Future<Output = PyResult<T>>,
@@ -465,6 +476,7 @@ fn stream_gears(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(upload2, m)?)?;
     m.add_function(wrap_pyfunction!(fetch, m)?)?;
     m.add_function(wrap_pyfunction!(edit, m)?)?;
+    m.add_function(wrap_pyfunction!(delete, m)?)?;
     m.add_function(wrap_pyfunction!(archives, m)?)?;
     m.add_function(wrap_pyfunction!(download, m)?)?;
     m.add_function(wrap_pyfunction!(download_with_callback, m)?)?;

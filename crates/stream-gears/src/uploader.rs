@@ -247,3 +247,9 @@ pub async fn archives(cookie_file: &PathBuf, status: &str, page: u32) -> Result<
     let response = bilibili.archives(status, page).await?;
     Ok(response)
 }
+
+pub async fn delete(cookie_file: &PathBuf, bvid: &str) -> Result<()> {
+    let bilibili = login_by_cookies(&cookie_file).await?;
+    bilibili.delete_by_app(bvid).await?;
+    Ok(())
+}

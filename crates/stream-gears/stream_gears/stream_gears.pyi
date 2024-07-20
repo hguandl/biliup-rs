@@ -312,3 +312,11 @@ def archives(cookie_file: str, status="is_pubbing,pubbed,not_pubbed", page=1) ->
 
     :return: 稿件列表JSON
     """
+
+def delete(cookie_file: str, bvid: str) -> None:
+    """
+    删除视频稿件
+
+    :param str cookie_file: cookie文件路径
+    :param str bvid: 视频bvid
+    """
