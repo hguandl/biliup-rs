@@ -1,4 +1,4 @@
-use anyhow::{Context, Result};
+use anyhow::{anyhow, Context, Result};
 use biliup::bilibili::Vid::Bvid;
 use biliup::client::StatelessClient;
 use biliup::error::Kind;
@@ -267,6 +267,43 @@ pub async fn my_info(cookie_file: &PathBuf) -> Result<serde_json::Value> {
 
     match response["code"].as_i64() {
         Some(0) => Ok(response["data"].take()),
-        _ => Err(anyhow::anyhow!("Fetch my info failed: {}", response)),
+        _ => Err(anyhow::anyhow!("Fetch myinfo failed: {}", response)),
+    }
+}
+
+pub async fn my_appeal(cookie_file: &PathBuf, reason: &str) -> Result<()> {
+    let bilibili = login_by_cookies(&cookie_file).await?;
+
+    let csrf = bilibili
+        .login_info
+        .cookie_info
+        .get("cookies")
+        .and_then(|c| c.as_array())
+        .ok_or(anyhow!("cookie error"))?
+        .iter()
+        .filter_map(|c| c.as_object())
+        .find(|c| c["name"] == "bili_jct")
+        .and_then(|j| j.get("value"))
+        .and_then(|v| v.as_str())
+        .ok_or(anyhow!("jct error"))?;
+
+    let mut params = std::collections::HashMap::new();
+    params.insert("appeal_type", "1");
+    params.insert("appeal_reason", reason);
+    params.insert("csrf", csrf);
+
+    let response: serde_json::Value = bilibili
+        .client
+        .post("https://api.bilibili.com/x/member/web/block/appeal")
+        .header("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15")
+        .form(&params)
+        .send()
+        .await?
+        .json()
+        .await?;
+
+    match response["code"].as_i64() {
+        Some(0) => Ok(()),
+        _ => Err(anyhow::anyhow!("Submit appeal failed: {}", response)),
     }
 }

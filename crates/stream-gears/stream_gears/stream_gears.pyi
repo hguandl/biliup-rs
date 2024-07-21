@@ -329,3 +329,11 @@ def my_info(cookie_file: str) -> str:
 
     :return: 用户信息JSON
     """
+
+def my_appeal(cookie_file: str, reason: str) -> None:
+    """
+    申诉账号封禁
+
+    :param str cookie_file: cookie文件路径
+    :param str reason: 申诉理由
+    """

@@ -440,6 +440,16 @@ fn my_info(py: Python<'_>, cookie_file: PathBuf) -> PyResult<String> {
     })
 }
 
+#[pyfunction]
+fn my_appeal(py: Python<'_>, cookie_file: PathBuf, reason: &str) -> PyResult<()> {
+    spawn_logged_task(py, || async {
+        match uploader::my_appeal(&cookie_file, reason).await {
+            Ok(_) => Ok(()),
+            Err(err) => return Err(pyerr_from_anyhow(err)),
+        }
+    })
+}
+
 fn spawn_logged_task<T: Send, R, F>(py: Python<'_>, f: F) -> PyResult<T>
 where
     R: Future<Output = PyResult<T>>,
@@ -494,6 +504,7 @@ fn stream_gears(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(delete, m)?)?;
     m.add_function(wrap_pyfunction!(archives, m)?)?;
     m.add_function(wrap_pyfunction!(my_info, m)?)?;
+    m.add_function(wrap_pyfunction!(my_appeal, m)?)?;
     m.add_function(wrap_pyfunction!(download, m)?)?;
     m.add_function(wrap_pyfunction!(download_with_callback, m)?)?;
     m.add_function(wrap_pyfunction!(login_by_cookies, m)?)?;
