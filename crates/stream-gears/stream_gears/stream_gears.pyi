@@ -320,3 +320,12 @@ def delete(cookie_file: str, bvid: str) -> None:
     :param str cookie_file: cookie文件路径
     :param str bvid: 视频bvid
     """
+
+def my_info(cookie_file: str) -> str:
+    """
+    获取用户自身信息
+
+    :param str cookie_file: cookie文件路径
+
+    :return: 用户信息JSON
+    """

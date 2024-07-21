@@ -253,3 +253,20 @@ pub async fn delete(cookie_file: &PathBuf, bvid: &str) -> Result<()> {
     bilibili.delete_by_app(bvid).await?;
     Ok(())
 }
+
+pub async fn my_info(cookie_file: &PathBuf) -> Result<serde_json::Value> {
+    let bilibili = login_by_cookies(&cookie_file).await?;
+    let mut response: serde_json::Value = bilibili
+        .client
+        .get("https://api.bilibili.com/x/space/v2/myinfo?web_location=333.999")
+        .header("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15")
+        .send()
+        .await?
+        .json()
+        .await?;
+
+    match response["code"].as_i64() {
+        Some(0) => Ok(response["data"].take()),
+        _ => Err(anyhow::anyhow!("Fetch my info failed: {}", response)),
+    }
+}

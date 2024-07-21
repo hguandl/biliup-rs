@@ -425,6 +425,21 @@ fn delete(py: Python<'_>, cookie_file: PathBuf, bvid: &str) -> PyResult<()> {
     })
 }
 
+#[pyfunction]
+fn my_info(py: Python<'_>, cookie_file: PathBuf) -> PyResult<String> {
+    spawn_logged_task(py, || async {
+        let value = match uploader::my_info(&cookie_file).await {
+            Ok(value) => value,
+            Err(err) => return Err(pyerr_from_anyhow(err)),
+        };
+
+        match serde_json::to_string(&value) {
+            Ok(json) => Ok(json),
+            Err(err) => Err(pyerr_from_anyhow(err.into())),
+        }
+    })
+}
+
 fn spawn_logged_task<T: Send, R, F>(py: Python<'_>, f: F) -> PyResult<T>
 where
     R: Future<Output = PyResult<T>>,
@@ -478,6 +493,7 @@ fn stream_gears(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(edit, m)?)?;
     m.add_function(wrap_pyfunction!(delete, m)?)?;
     m.add_function(wrap_pyfunction!(archives, m)?)?;
+    m.add_function(wrap_pyfunction!(my_info, m)?)?;
     m.add_function(wrap_pyfunction!(download, m)?)?;
     m.add_function(wrap_pyfunction!(download_with_callback, m)?)?;
     m.add_function(wrap_pyfunction!(login_by_cookies, m)?)?;
