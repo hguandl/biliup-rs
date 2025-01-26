@@ -214,7 +214,7 @@ fn login_by_web_qrcode(
 
 #[allow(clippy::too_many_arguments)]
 #[pyfunction]
-#[pyo3(signature = (video_path, cookie_file, title, tid=171, tag="".to_string(), topic_id=None, copyright=2, source="".to_string(), desc="".to_string(), dynamic="".to_string(), cover="".to_string(), dolby=0, lossless_music=0, no_reprint=0, open_elec=0, limit=3, desc_v2=vec![], dtime=None, line=None, extra_fields="".to_string(), proxy=None))]
+#[pyo3(signature = (video_path, cookie_file, title, tid=171, tag="".to_string(), topic_id=None, copyright=2, source="".to_string(), desc="".to_string(), dynamic="".to_string(), cover="".to_string(), dolby=0, lossless_music=0, no_reprint=0, open_elec=0, limit=3, desc_v2=vec![], dtime=None, line=None, extra_fields="".to_string(), upload_hook_fn=None, proxy=None))]
 fn upload(
     py: Python<'_>,
     video_path: Vec<PathBuf>,
@@ -237,6 +237,7 @@ fn upload(
     dtime: Option<u32>,
     line: Option<UploadLine>,
     extra_fields: Option<String>,
+    upload_hook_fn: Option<PyObject>,
     proxy: Option<String>,
 ) -> PyResult<()> {
     py.allow_threads(|| {
@@ -263,6 +264,15 @@ fn upload(
             .with_writer(non_blocking);
 
         let collector = formatting_layer.with(file_layer);
+
+        let upload_hook = upload_hook_fn.map(|f| {
+            move |len: usize, total: u64| {
+                Python::with_gil(|py| match f.call1(py, (len, total)) {
+                    Ok(_) => (),
+                    Err(e) => tracing::error!("Unable to invoke the callback function: {e}"),
+                })
+            }
+        });
 
         tracing::subscriber::with_default(collector, || -> PyResult<()> {
             let studio_pre = StudioPre::builder()
@@ -288,7 +298,7 @@ fn upload(
                 .extra_fields(Some(parse_extra_fields(extra_fields)))
                 .build();
 
-            match rt.block_on(uploader::upload(studio_pre, proxy.as_deref())) {
+            match rt.block_on(uploader::upload(studio_pre, upload_hook, proxy.as_deref())) {
                 Ok(_) => Ok(()),
                 // Ok(_) => {  },
                 Err(err) => Err(pyo3::exceptions::PyRuntimeError::new_err(format!(
@@ -303,7 +313,7 @@ fn upload(
 
 #[allow(clippy::too_many_arguments)]
 #[pyfunction]
-#[pyo3(signature = (video_path, cookie_file, title, tid=171, tag="".to_string(), topic_id=None, copyright=2, source="".to_string(), desc="".to_string(), dynamic="".to_string(), cover="".to_string(), dolby=0, lossless_music=0, no_reprint=0, open_elec=0, up_close_reply=false, up_selection_reply=false, up_close_danmu=false, limit=3, desc_v2=vec![], dtime=None, line=None, extra_fields="".to_string(), proxy=None))]
+#[pyo3(signature = (video_path, cookie_file, title, tid=171, tag="".to_string(), topic_id=None, copyright=2, source="".to_string(), desc="".to_string(), dynamic="".to_string(), cover="".to_string(), dolby=0, lossless_music=0, no_reprint=0, open_elec=0, up_close_reply=false, up_selection_reply=false, up_close_danmu=false, limit=3, desc_v2=vec![], dtime=None, line=None, extra_fields="".to_string(), upload_hook_fn=None, proxy=None))]
 fn upload_by_app(
     py: Python<'_>,
     video_path: Vec<PathBuf>,
@@ -329,6 +339,7 @@ fn upload_by_app(
     dtime: Option<u32>,
     line: Option<UploadLine>,
     extra_fields: Option<String>,
+    upload_hook_fn: Option<PyObject>,
     proxy: Option<String>,
 ) -> PyResult<()> {
     py.allow_threads(|| {
@@ -355,6 +366,15 @@ fn upload_by_app(
             .with_writer(non_blocking);
 
         let collector = formatting_layer.with(file_layer);
+
+        let upload_hook = upload_hook_fn.map(|f| {
+            move |len: usize, total: u64| {
+                Python::with_gil(|py| match f.call1(py, (len, total)) {
+                    Ok(_) => (),
+                    Err(e) => tracing::error!("Unable to invoke the callback function: {e}"),
+                })
+            }
+        });
 
         tracing::subscriber::with_default(collector, || -> PyResult<()> {
             let studio_pre = StudioPre::builder()
@@ -383,7 +403,11 @@ fn upload_by_app(
                 .extra_fields(Some(parse_extra_fields(extra_fields)))
                 .build();
 
-            match rt.block_on(uploader::upload_by_app(studio_pre, proxy.as_deref())) {
+            match rt.block_on(uploader::upload_by_app(
+                studio_pre,
+                upload_hook,
+                proxy.as_deref(),
+            )) {
                 Ok(_) => Ok(()),
                 // Ok(_) => {  },
                 Err(err) => Err(pyo3::exceptions::PyRuntimeError::new_err(format!(

@@ -73,7 +73,11 @@ pub struct StudioPre {
     extra_fields: Option<HashMap<String, serde_json::Value>>,
 }
 
-pub async fn upload(studio_pre: StudioPre, proxy: Option<&str>) -> Result<ResponseData> {
+pub async fn upload(
+    studio_pre: StudioPre,
+    upload_hook: Option<impl Fn(usize, u64)>,
+    proxy: Option<&str>,
+) -> Result<ResponseData> {
     // let file = std::fs::File::options()
     //     .read(true)
     //     .write(true)
@@ -141,6 +145,10 @@ pub async fn upload(studio_pre: StudioPre, proxy: Option<&str>) -> Result<Respon
                 vs.map(|vs| {
                     let chunk = vs?;
                     let len = chunk.len();
+                    match upload_hook {
+                        Some(ref f) => f(len, total_size),
+                        None => (),
+                    }
                     Ok((chunk, len))
                 })
             })
@@ -197,7 +205,11 @@ pub async fn upload(studio_pre: StudioPre, proxy: Option<&str>) -> Result<Respon
     Ok(bilibili.submit(&studio, proxy).await?)
 }
 
-pub async fn upload_by_app(studio_pre: StudioPre, proxy: Option<&str>) -> Result<ResponseData> {
+pub async fn upload_by_app(
+    studio_pre: StudioPre,
+    upload_hook: Option<impl Fn(usize, u64)>,
+    proxy: Option<&str>,
+) -> Result<ResponseData> {
     // let file = std::fs::File::options()
     //     .read(true)
     //     .write(true)
@@ -267,6 +279,10 @@ pub async fn upload_by_app(studio_pre: StudioPre, proxy: Option<&str>) -> Result
                 vs.map(|vs| {
                     let chunk = vs?;
                     let len = chunk.len();
+                    match upload_hook {
+                        Some(ref f) => f(len, total_size),
+                        None => (),
+                    }
                     Ok((chunk, len))
                 })
             })

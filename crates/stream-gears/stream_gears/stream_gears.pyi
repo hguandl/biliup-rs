@@ -167,8 +167,8 @@ def upload(video_path: List[str],
            dtime: Optional[int],
            line: Optional[UploadLine],
            extra_fields: Optional[str],
+           upload_hook_fn: Optional[Callable[[int, int], None]],
            proxy: Optional[str]) -> None:
-    
     """
     上传视频稿件
 
@@ -192,6 +192,7 @@ def upload(video_path: List[str],
     :param Optional[dtime] int dtime: 定时发布时间, 距离提交大于2小时小于15天, 格式为10位时间戳
     :param Optional[UploadLine] line: 上传线路
     :param Optional[ExtraFields] line: 上传额外参数
+    :param Optional[Callable[[int, int], None]] upload_hook_fn: 上传进度回调函数
     :param Optional[str] proxy: 代理
     """
 
@@ -218,6 +219,7 @@ def upload_by_app(video_path: List[str],
            dtime: Optional[int],
            line: Optional[UploadLine],
            extra_fields: Optional[str],
+           upload_hook_fn: Optional[Callable[[int, int], None]],
            proxy: Optional[str]) -> None:
     """
     上传视频稿件
@@ -245,5 +247,6 @@ def upload_by_app(video_path: List[str],
     :param Optional[dtime] int dtime: 定时发布时间, 距离提交大于2小时小于15天, 格式为10位时间戳
     :param Optional[UploadLine] line: 上传线路
     :param Optional[ExtraFields] line: 上传额外参数
+    :param Optional[Callable[[int, int], None]] upload_hook_fn: 上传进度回调函数
     :param Optional[str] proxy: 代理
     """
