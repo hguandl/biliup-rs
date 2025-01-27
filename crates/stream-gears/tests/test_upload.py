@@ -1,22 +1,9 @@
+import time
+
 import stream_gears
 
-
-def upload_callback():
-    uploaded = 0
-
-    def callback_inner(chunk_bytes: int, total_bytes: int):
-        nonlocal uploaded
-        uploaded += chunk_bytes
-        print(
-            f"Uploaded {uploaded}/{total_bytes} bytes"
-            f" ({uploaded / total_bytes * 100:.2f}%)"
-        )
-
-    return callback_inner
-
-
 if __name__ == "__main__":
-    stream_gears.upload(
+    handle = stream_gears.upload_handle(
         ["examples/test.mp4"],
         "cookies.json",
         "title",
@@ -36,9 +23,18 @@ if __name__ == "__main__":
         [],
         None,
         stream_gears.UploadLine.Bda2,
+        "",
         None,
-        upload_callback(),
     )
+
+    handle.start()
+
+    while handle.total == 0 or handle.uploaded < handle.total:
+        speed = int(handle.speed / 10000) / 100
+        print(f"{handle.uploaded}/{handle.total} Bytes [{speed}MB/s]")
+        time.sleep(1)
+
+    handle.wait()
 
     stream_gears.upload_by_app(
         ["examples/test.mp4", "examples/test2.mp4"],
@@ -63,6 +59,7 @@ if __name__ == "__main__":
         [],
         None,
         stream_gears.UploadLine.Qn,
+        "",
         None,
         None,
     )

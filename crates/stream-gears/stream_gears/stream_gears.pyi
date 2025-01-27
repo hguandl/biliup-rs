@@ -1,14 +1,14 @@
-from typing import Dict, List, Optional, Callable
-from enum import Enum
+from typing import Callable, Dict, List, Optional
 
-from .pyobject import Segment, Credit
+from .pyobject import Credit, Segment, UploadLine
 
-
-def download(url: str,
-             header_map: Dict[str, str],
-             file_name: str,
-             segment: Segment,
-             proxy: Optional[str]) -> None:
+def download(
+    url: str,
+    header_map: Dict[str, str],
+    file_name: str,
+    segment: Segment,
+    proxy: Optional[str],
+) -> None:
     """
     下载视频
 
@@ -19,13 +19,14 @@ def download(url: str,
     :param Optional[str] proxy: 代理
     """
 
-
-def download_with_callback(url: str,
-               header_map: Dict[str, str],
-               file_name: str,
-               segment: Segment,
-               file_name_callback_fn: Callable[[str], None],
-               proxy: Optional[str]) -> None:
+def download_with_callback(
+    url: str,
+    header_map: Dict[str, str],
+    file_name: str,
+    segment: Segment,
+    file_name_callback_fn: Callable[[str], None],
+    proxy: Optional[str],
+) -> None:
     """
     下载视频
 
@@ -37,7 +38,6 @@ def download_with_callback(url: str,
     :param Optional[str] proxy: 代理
     """
 
-
 def login_by_cookies(proxy: Optional[str]) -> bool:
     """
     cookie登录
@@ -45,7 +45,6 @@ def login_by_cookies(proxy: Optional[str]) -> bool:
     :param Optional[str] proxy: 代理
     :return: 是否登录成功
     """
-
 
 def send_sms(country_code: int, phone: int, proxy: Optional[str]) -> str:
     """
@@ -57,7 +56,6 @@ def send_sms(country_code: int, phone: int, proxy: Optional[str]) -> str:
     :return: 短信登录JSON信息
     """
 
-
 def login_by_sms(code: int, ret: str, proxy: Optional[str]) -> bool:
     """
     短信登录
@@ -68,7 +66,6 @@ def login_by_sms(code: int, ret: str, proxy: Optional[str]) -> bool:
     :return: 是否登录成功
     """
 
-
 def get_qrcode(proxy: Optional[str]) -> str:
     """
     获取二维码
@@ -76,7 +73,6 @@ def get_qrcode(proxy: Optional[str]) -> str:
     :param Optional[str] proxy: 代理
     :return: 二维码登录JSON信息
     """
-
 
 def login_by_qrcode(ret: str, proxy: Optional[str]) -> bool:
     """
@@ -86,7 +82,6 @@ def login_by_qrcode(ret: str, proxy: Optional[str]) -> bool:
     :param Optional[str] proxy: 代理
     :return: 是否登录成功
     """
-
 
 def login_by_web_cookies(sess_data: str, bili_jct: str, proxy: Optional[str]) -> bool:
     """
@@ -98,8 +93,9 @@ def login_by_web_cookies(sess_data: str, bili_jct: str, proxy: Optional[str]) ->
     :return: 是否登录成功
     """
 
-
-def login_by_web_qrcode(sess_data: str, dede_user_id: str, proxy: Optional[str]) -> bool:
+def login_by_web_qrcode(
+    sess_data: str, dede_user_id: str, proxy: Optional[str]
+) -> bool:
     """
     网页Cookie登录2
 
@@ -109,66 +105,30 @@ def login_by_web_qrcode(sess_data: str, dede_user_id: str, proxy: Optional[str])
     :return: 是否登录成功
     """
 
-
-class UploadLine(Enum):
-    """上传线路"""
-
-    Bda2 = 1
-    """百度upos"""
-
-    Ws = 2
-    """网宿upos"""
-
-    Qn = 3
-    """七牛upos"""
-
-    # Kodo = 4
-    # """七牛bupfetch"""
-
-    # Cos = 5
-    # """腾讯bupfetch"""
-
-    # CosInternal = 6
-    # """上海腾讯云内网"""
-
-    Bda = 4
-    """百度云海外"""
-
-    Tx = 5
-    """腾讯云EO"""
-
-    Txa = 6
-    """腾讯云EO海外"""
-
-    Bldsa = 7
-    """Bldsa"""
-
-    Alia = 8
-    """阿里云upos"""
-
-
-def upload(video_path: List[str],
-           cookie_file: str,
-           title: str,
-           tid: int,
-           tag: str,
-           topic_id: Optional[int],
-           copyright: int,
-           source: str,
-           desc: str,
-           dynamic: str,
-           cover: str,
-           dolby: int,
-           lossless_music: int,
-           no_reprint: int,
-           open_elec: int,
-           limit: int,
-           desc_v2: List[Credit],
-           dtime: Optional[int],
-           line: Optional[UploadLine],
-           extra_fields: Optional[str],
-           upload_hook_fn: Optional[Callable[[int, int], None]],
-           proxy: Optional[str]) -> None:
+def upload(
+    video_path: List[str],
+    cookie_file: str,
+    title: str,
+    tid: int,
+    tag: str,
+    topic_id: Optional[int],
+    copyright: int,
+    source: str,
+    desc: str,
+    dynamic: str,
+    cover: str,
+    dolby: int,
+    lossless_music: int,
+    no_reprint: int,
+    open_elec: int,
+    limit: int,
+    desc_v2: List[Credit],
+    dtime: Optional[int],
+    line: Optional[UploadLine],
+    extra_fields: Optional[str],
+    upload_hook_fn: Optional[Callable[[int, int], None]],
+    proxy: Optional[str],
+) -> None:
     """
     上传视频稿件
 
@@ -196,31 +156,33 @@ def upload(video_path: List[str],
     :param Optional[str] proxy: 代理
     """
 
-def upload_by_app(video_path: List[str],
-           cookie_file: str,
-           title: str,
-           tid: int,
-           tag: str,
-           topic_id: Optional[int],
-           copyright: int,
-           source: str,
-           desc: str,
-           dynamic: str,
-           cover: str,
-           dolby: int,
-           lossless_music: int,
-           no_reprint: int,
-           open_elec: int,
-           up_close_reply: bool,
-           up_selection_reply: bool,
-           up_close_danmu:bool,
-           limit: int,
-           desc_v2: List[Credit],
-           dtime: Optional[int],
-           line: Optional[UploadLine],
-           extra_fields: Optional[str],
-           upload_hook_fn: Optional[Callable[[int, int], None]],
-           proxy: Optional[str]) -> None:
+def upload_by_app(
+    video_path: List[str],
+    cookie_file: str,
+    title: str,
+    tid: int,
+    tag: str,
+    topic_id: Optional[int],
+    copyright: int,
+    source: str,
+    desc: str,
+    dynamic: str,
+    cover: str,
+    dolby: int,
+    lossless_music: int,
+    no_reprint: int,
+    open_elec: int,
+    up_close_reply: bool,
+    up_selection_reply: bool,
+    up_close_danmu: bool,
+    limit: int,
+    desc_v2: List[Credit],
+    dtime: Optional[int],
+    line: Optional[UploadLine],
+    extra_fields: Optional[str],
+    upload_hook_fn: Optional[Callable[[int, int], None]],
+    proxy: Optional[str],
+) -> None:
     """
     上传视频稿件
 
