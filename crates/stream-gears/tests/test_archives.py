@@ -21,6 +21,10 @@ archive_page = json.loads(
     )
 )
 
+if archive_page["arc_audits"] is None:
+    print("没有未过审的稿件")
+    sys.exit(0)
+
 # 遍历投稿列表
 for audit in archive_page["arc_audits"]:
     archive = audit["Archive"]  # 投稿信息
@@ -34,6 +38,10 @@ for audit in archive_page["arc_audits"]:
 
     # 如果正常过审就跳过
     if state == 0:
+        continue
+
+    # 如果审核中就跳过
+    if state == -1:
         continue
 
     # 稿件具体信息
