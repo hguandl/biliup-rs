@@ -290,8 +290,8 @@ def edit(cookie_file: str,
          bvid: str,
          title: Optional[str] = None,
          cover: Optional[str] = None,
-         tag: Optional[str] = None) -> None:
-    
+         tag: Optional[str] = None,
+         removing_filenames: Optional[list[str]] = []) -> None:
     """
     编辑视频稿件
 

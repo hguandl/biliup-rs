@@ -215,6 +215,7 @@ pub async fn edit(
     title: Option<&str>,
     cover: Option<&str>,
     tag: Option<&str>,
+    removing_filenames: Option<&Vec<String>>,
 ) -> Result<serde_json::Value> {
     let bilibili = login_by_cookies(&cookie_file).await?;
     let mut studio = bilibili.studio_data(&Bvid(bvid.to_owned())).await?;
@@ -231,6 +232,14 @@ pub async fn edit(
 
     if let Some(tag) = tag {
         studio.tag = tag.to_owned();
+    }
+
+    if let Some(removing_filenames) = removing_filenames {
+        studio.videos = studio
+            .videos
+            .into_iter()
+            .filter(|v| !removing_filenames.contains(&v.filename))
+            .collect();
     }
 
     let response = bilibili.edit(&studio).await?;
