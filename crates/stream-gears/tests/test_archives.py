@@ -76,4 +76,5 @@ for audit in archive_page["arc_audits"]:
         None,  # 封面图片路径, None 为不修改
         None,  # 视频标签, None 为不修改
         rejected_filenames,  # 删除的分P文件名列表
+        proxy=None # 代理, None 为不使用
     )

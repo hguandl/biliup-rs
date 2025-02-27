@@ -216,6 +216,7 @@ pub async fn edit(
     cover: Option<&str>,
     tag: Option<&str>,
     removing_filenames: Option<&Vec<String>>,
+    proxy: Option<&str>,
 ) -> Result<serde_json::Value> {
     let bilibili = login_by_cookies(&cookie_file).await?;
     let mut studio = bilibili.studio_data(&Bvid(bvid.to_owned())).await?;
@@ -242,7 +243,7 @@ pub async fn edit(
             .collect();
     }
 
-    let response = bilibili.edit(&studio).await?;
+    let response = bilibili.edit(&studio, proxy).await?;
 
     if response["code"] != 0 {
         return Err(anyhow::anyhow!("Edit failed: {}", response));

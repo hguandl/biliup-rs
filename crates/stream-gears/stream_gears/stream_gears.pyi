@@ -291,7 +291,8 @@ def edit(cookie_file: str,
          title: Optional[str] = None,
          cover: Optional[str] = None,
          tag: Optional[str] = None,
-         removing_filenames: Optional[list[str]] = []) -> None:
+         removing_filenames: Optional[list[str]] = [],
+         proxy: Optional[str] = None) -> None:
     """
     编辑视频稿件
 
@@ -300,6 +301,8 @@ def edit(cookie_file: str,
     :param str title: 视频标题, None表示不修改
     :param str cover: 视频封面, None表示不修改
     :param str tag: 视频标签, 英文逗号分隔多个tag, None表示不修改
+    :param Optional[list[str]] removing_filenames: 需要删除的文件名列表
+    :param Optional[str] proxy: 代理地址
     """
 
 def archives(cookie_file: str, status="is_pubbing,pubbed,not_pubbed", page=1) -> str:

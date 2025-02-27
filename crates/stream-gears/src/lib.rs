@@ -382,6 +382,7 @@ fn edit(
     tag: Option<String>,
     cover: Option<String>,
     removing_filenames: Option<Vec<String>>,
+    proxy: Option<String>,
 ) -> PyResult<()> {
     spawn_logged_task(py, || async {
         let result = uploader::edit(
@@ -391,6 +392,7 @@ fn edit(
             cover.as_deref(),
             tag.as_deref(),
             removing_filenames.as_ref(),
+            proxy.as_deref(),
         )
         .await;
         match result {
