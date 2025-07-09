@@ -8,7 +8,9 @@ use std::io::{ErrorKind, Read};
 use std::ops::DerefMut;
 use std::path::Path;
 use std::pin::Pin;
+use std::sync::{Arc, Mutex};
 use std::task::{Context, Poll};
+use std::time::{Duration, Instant};
 
 pub mod bilibili;
 pub mod credential;
@@ -59,10 +61,66 @@ pub struct VideoStream {
     pub capacity: usize,
     buffer: Vec<u8>,
     pub file: std::fs::File,
+    throttle: Throttle,
+}
+
+#[derive(Debug)]
+pub struct Throttle(Arc<Mutex<Option<ThrottleInner>>>);
+
+impl Clone for Throttle {
+    fn clone(&self) -> Self {
+        Self(self.0.clone())
+    }
+}
+
+#[derive(Debug)]
+struct ThrottleInner {
+    remain: usize,
+    max: usize,
+    last_read: Instant,
+}
+
+impl Throttle {
+    fn new_inner(quota: Option<usize>) -> Option<ThrottleInner> {
+        quota.map(|max| ThrottleInner {
+            remain: max,
+            max,
+            last_read: Instant::now(),
+        })
+    }
+
+    pub fn new(quota: Option<usize>) -> Self {
+        Self(Arc::new(Mutex::new(Self::new_inner(quota))))
+    }
+
+    pub fn update(&self, quota: Option<usize>) {
+        *self.0.lock().unwrap() = Self::new_inner(quota);
+    }
+
+    fn remain(&self) -> Option<usize> {
+        let guard = self.0.lock().unwrap();
+        guard.as_ref().map(|t| t.remain)
+    }
+
+    fn wait(&self, len: usize) {
+        if let Some(inner) = self.0.lock().unwrap().as_mut() {
+            inner.remain -= len;
+            if inner.remain <= 0 {
+                let elapsed = inner.last_read.elapsed();
+                let interval = Duration::from_secs(1);
+                if elapsed < interval {
+                    let duration = interval - elapsed;
+                    std::thread::sleep(duration);
+                }
+                inner.remain = inner.max;
+                inner.last_read = std::time::Instant::now();
+            }
+        }
+    }
 }
 
 impl VideoStream {
-    pub fn with_capacity(file: std::fs::File, capacity: usize) -> Self {
+    pub fn with_capacity(file: std::fs::File, capacity: usize, throttle: Throttle) -> Self {
         // self.capacity = capacity;
         // self.buffer = vec![0u8; capacity];
         // self.buf = BytesMut::with_capacity(capacity);
@@ -70,12 +128,17 @@ impl VideoStream {
             capacity,
             buffer: vec![0u8; capacity],
             file,
+            throttle,
         }
     }
 
     pub fn read(&mut self) -> io::Result<Option<Bytes>> {
         let mut len = 0;
-        let mut buf = self.buffer.deref_mut();
+        let mut buf = match self.throttle.remain() {
+            Some(m) if m < self.capacity => self.buffer.deref_mut().split_at_mut(m).0,
+            Some(_) => self.buffer.deref_mut(),
+            None => self.buffer.deref_mut(),
+        };
         while !buf.is_empty() {
             match self.file.read(buf) {
                 Ok(0) => break,
@@ -88,6 +151,7 @@ impl VideoStream {
                 Err(e) => return Err(e),
             }
         }
+        self.throttle.wait(len);
         if len == 0 {
             Ok(None)
         } else {
@@ -112,10 +176,11 @@ pub struct VideoFile {
     pub file_name: String,
     pub filepath: std::path::PathBuf,
     pub file: std::fs::File,
+    pub throttle: Throttle,
 }
 
 impl VideoFile {
-    pub fn new(filepath: &std::path::Path) -> io::Result<Self> {
+    pub fn new(filepath: &std::path::Path, throttle: &Throttle) -> io::Result<Self> {
         let file = std::fs::File::open(filepath)?;
         let total_size = file.metadata()?.len();
         let file_name = filepath
@@ -128,10 +193,15 @@ impl VideoFile {
             total_size,
             file_name: file_name.into(),
             filepath: filepath.into(),
+            throttle: throttle.clone(),
         })
     }
 
     pub fn get_stream(&self, capacity: usize) -> io::Result<VideoStream> {
-        Ok(VideoStream::with_capacity(self.file.try_clone()?, capacity))
+        Ok(VideoStream::with_capacity(
+            self.file.try_clone()?,
+            capacity,
+            self.throttle.clone(),
+        ))
     }
 }

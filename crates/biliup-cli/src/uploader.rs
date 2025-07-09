@@ -5,7 +5,7 @@ use biliup::error::Kind;
 use biliup::uploader::bilibili::{BiliBili, Studio, Vid, Video};
 use biliup::uploader::credential::{Credential, LoginInfo};
 use biliup::uploader::line::Probe;
-use biliup::uploader::{VideoFile, credential, line, load_config};
+use biliup::uploader::{Throttle, VideoFile, credential, line, load_config};
 use bytes::{Buf, Bytes};
 use clap::ValueEnum;
 use dialoguer::Input;
@@ -245,7 +245,7 @@ pub async fn upload(
     // let line = line::kodo();
     for video_path in video_path {
         info!("{line:?}");
-        let video_file = VideoFile::new(video_path)
+        let video_file = VideoFile::new(video_path, &Throttle::new(None))
             .with_context(|| format!("file {}", video_path.to_string_lossy()))?;
         let total_size = video_file.total_size;
         let file_name = video_file.file_name.clone();

@@ -4,7 +4,7 @@ use biliup::error::Kind;
 use biliup::uploader::bilibili::{Credit, ResponseData, Studio};
 use biliup::uploader::credential::login_by_cookies;
 use biliup::uploader::line::Probe;
-use biliup::uploader::{VideoFile, line};
+use biliup::uploader::{Throttle, VideoFile, line};
 use futures::StreamExt;
 use pyo3::prelude::*;
 use pyo3::pyclass;
@@ -124,7 +124,7 @@ pub async fn upload(studio_pre: StudioPre, proxy: Option<&str>) -> Result<Respon
     for video_path in video_path {
         println!("{:?}", video_path.canonicalize()?.to_str());
         info!("{line:?}");
-        let video_file = VideoFile::new(&video_path)?;
+        let video_file = VideoFile::new(&video_path, &Throttle::new(None))?;
         let total_size = video_file.total_size;
         let file_name = video_file.file_name.clone();
         let uploader = line.pre_upload(&bilibili, video_file).await?;
@@ -248,7 +248,7 @@ pub async fn upload_by_app(studio_pre: StudioPre, proxy: Option<&str>) -> Result
     for video_path in video_path {
         println!("{:?}", video_path.canonicalize()?.to_str());
         info!("{line:?}");
-        let video_file = VideoFile::new(&video_path)?;
+        let video_file = VideoFile::new(&video_path, &Throttle::new(None))?;
         let total_size = video_file.total_size;
         let file_name = video_file.file_name.clone();
         let uploader = line.pre_upload(&bilibili, video_file).await?;
